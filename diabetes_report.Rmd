@@ -1,0 +1,32 @@
+---
+title: "Global Diabetes Prevalence Trends (2011-2024)"
+output: html_document
+---
+
+## Overview
+
+This report analyzes global diabetes prevalence data from Our World in Data, comparing rates in 2011 and 2024 to identify countries with the largest increases.
+```{r}
+library(dplyr)
+diabetes_data <- read.csv("https://ourworldindata.org/grapher/diabetes-prevalence.csv?v=1&csvType=full&useColumnShortNames=true")
+diabetes_data <- diabetes_data %>% rename(diabetes_pct = sh_sta_diab_zs)
+
+diabetes_2011 <- diabetes_data %>% filter(year == 2011)
+diabetes_2024 <- diabetes_data %>% filter(year == 2024)
+
+comparison <- inner_join(diabetes_2011, diabetes_2024, by = "entity")
+comparison$change <- comparison$diabetes_pct.y - comparison$diabetes_pct.x
+comparison <- comparison %>% arrange(desc(change))
+
+print(head(comparison[, c("entity", "diabetes_pct.x", "diabetes_pct.y", "change")], 10))
+```
+## Top 10 Countries by Increase
+
+The chart below shows the 10 countries with the largest increase in diabetes prevalence between 2011 and 2024.
+```{r}
+library(ggplot2)
+top10 <- head(comparison, 10)
+ggplot(top10, aes(x = reorder(entity, change), y = change)) + geom_col() + coord_flip() + labs(title = "Top 10 Countries: Increase in Diabetes Prevalence (2011-2024)", x = "Country", y = "Increase in Diabetes Prevalence (%)")
+```
+
+
